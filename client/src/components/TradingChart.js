@@ -238,6 +238,16 @@ const TradingChart = ({ selectedCrypto, cryptoData }) => {
     lineColor = theme.colors.secondary;
   }
 
+  // Scale lại volume cho đẹp
+  const minVolume = chartData.length > 0 ? Math.min(...chartData.map(d => d.volume)) : 0;
+  const maxVolume = chartData.length > 0 ? Math.max(...chartData.map(d => d.volume)) : 1;
+  const scaledChartData = chartData.map(d => ({
+    ...d,
+    volumeScaled: maxVolume === minVolume
+      ? 50
+      : 1 + 149 * (d.volume - minVolume) / (maxVolume - minVolume) * (0.9 + Math.random() * 0.2)
+  }));
+
   return (
     <Container theme={theme}>
       {/* Thông tin chi tiết coin */}
@@ -388,10 +398,10 @@ const TradingChart = ({ selectedCrypto, cryptoData }) => {
             </ResponsiveContainer>
             {/* Biểu đồ volume */}
             <ResponsiveContainer width="100%" height={60}>
-              <BarChart data={chartData} margin={{ top: 0, right: 20, left: 0, bottom: 0 }}>
+              <BarChart data={scaledChartData} margin={{ top: 0, right: 20, left: 0, bottom: 0 }}>
                 <XAxis dataKey="time" hide />
                 <YAxis hide />
-                <Bar dataKey="volume"
+                <Bar dataKey="volumeScaled"
                   radius={[4, 4, 0, 0]}
                   isAnimationActive={false}
                   fill={theme.colors.primary}
@@ -399,8 +409,8 @@ const TradingChart = ({ selectedCrypto, cryptoData }) => {
                     ...{
                       shape: (props) => {
                         const { x, y, width, height, index } = props;
-                        const prev = chartData[index - 1]?.price;
-                        const curr = chartData[index]?.price;
+                        const prev = scaledChartData[index - 1]?.price;
+                        const curr = scaledChartData[index]?.price;
                         const color = prev !== undefined && curr < prev ? theme.colors.secondary : theme.colors.primary;
                         return <rect x={x} y={y} width={width} height={height} fill={color} rx={2} />;
                       }
