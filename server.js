@@ -6,6 +6,7 @@ const axios = require('axios');
 const cron = require('node-cron');
 const { v4: uuidv4 } = require('uuid');
 const WebSocket = require('ws');
+const path = require('path');
 
 // Fallback API - CoinGecko
 async function fetchCoinGeckoData() {
@@ -51,6 +52,8 @@ const io = socketIo(server, {
 app.use(cors());
 app.use(express.json());
 app.use(express.static('public'));
+// Serve static files from React build
+app.use(express.static(path.join(__dirname, 'client/build')));
 
 // Dữ liệu thật từ Binance API
 const cryptoData = {
@@ -367,6 +370,11 @@ app.get('/api/news', async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: 'Không lấy được tin tức' });
   }
+});
+
+// Catch-all: return React index.html cho mọi route không phải API
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'client/build', 'index.html'));
 });
 
 const PORT = process.env.PORT || 5001;
